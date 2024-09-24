@@ -9,7 +9,7 @@ gitPfp.getRandomPicture();
 
 const main = async () => {
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
   });
 
   await gitPfp.getRandomPicture();
