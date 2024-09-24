@@ -3,7 +3,7 @@ import { createWriteStream } from "fs";
 import { resolve } from "path";
 import { writeFile } from "fs";
 import { Stream } from "stream";
-import puppeteer, { Browser } from "puppeteer";
+import { Browser } from "puppeteer";
 
 export default class GitPfp {
   private nasaApiKey: string;
@@ -19,6 +19,13 @@ export default class GitPfp {
     });
 
     const imageUrl = metadataResponse.data[0].url;
+    const mediaType = metadataResponse.data[0].media_type;
+
+    if (mediaType !== "image") {
+      console.log("media type is not an image, trying again...");
+      this.getRandomPicture();
+      return;
+    }
 
     const writer = createWriteStream(resolve(__dirname, `../images/image.jpg`));
     const imageResponse: AxiosResponse<Stream> = await axios({
@@ -26,6 +33,13 @@ export default class GitPfp {
       method: "GET",
       responseType: "stream",
     });
+
+    //if the image is bigger than 1mb, try again
+    if (parseInt(imageResponse.headers["content-length"]) > 1000000) {
+      console.log("image is too big, trying again...");
+      this.getRandomPicture();
+      return;
+    }
 
     imageResponse.data.pipe(writer);
     return new Promise((resolve, reject) => {
@@ -39,12 +53,12 @@ export default class GitPfp {
       githubUsername,
       githubPassword,
       mfa,
-      loginCookie,
+      loginCookies,
     }: {
       githubUsername?: string;
       githubPassword?: string;
       mfa?: "github_mobile" | "no_mfa";
-      loginCookie?: string;
+      loginCookies?: string[];
     }
   ) {
     const page = await browser.newPage();
@@ -53,12 +67,22 @@ export default class GitPfp {
       height: 1080,
       deviceScaleFactor: 1,
     });
-    if (loginCookie) {
+    if (loginCookies) {
       console.log("logging in with cookie...");
       await page.setCookie({
         name: "user_session",
-        value: loginCookie,
+        secure: true,
+        value: loginCookies[0],
         domain: ".github.com",
+      });
+      await page.setCookie({
+        name: "__Host-user_session_same_site",
+        secure: true,
+        sameSite: "Strict",
+        domain: "github.com",
+        httpOnly: true,
+        value: loginCookies[1],
+        path: "/",
       });
       await page.goto("https://github.com");
     }
@@ -93,16 +117,28 @@ export default class GitPfp {
         await page
           .waitForSelector(".logged-in")
           .then(async () => {
-            console.log("successfully logged in to github. ");
+            console.log("successfully logged in to github.");
             const cookies = await page.cookies();
-            const sessionCookie =
-              cookies.find((cookie) => cookie.name === "user_session")?.value ||
-              "could not find session cookie";
+            const sessionCookie = cookies.find(
+              (cookie) => cookie.name == "user_session"
+            )?.value;
+            const sameSiteCookie = cookies.find(
+              (cookie) => cookie.name == "__Host-user_session_same_site"
+            )?.value;
             writeFile(
-              resolve(__dirname, "../user_session.txt"),
-              sessionCookie,
-              () => {
-                console.log("session cookie has been set.");
+              "./cookies.json",
+              JSON.stringify(
+                {
+                  user_session: sessionCookie,
+                  user_session_same_site: sameSiteCookie,
+                },
+                null,
+                2
+              ),
+              (err) => {
+                if (err) {
+                  console.log(err);
+                }
               }
             );
           })
@@ -120,6 +156,11 @@ export default class GitPfp {
       height: 1080,
       deviceScaleFactor: 1,
     });
+    
+    page.on("dialog", async (dialog) => {
+      await dialog.accept();
+    });
+
     await page.goto("https://github.com/settings/profile");
     await page.waitForSelector(".logged-in");
     await page.click(
@@ -127,8 +168,29 @@ export default class GitPfp {
     );
     const handle = await page.$('input[type="file"]');
     await handle?.uploadFile("./images/image.jpg");
-    await page.waitForSelector('button[name="op"]');
-    await page.click('button[name="op"]');
+    try {
+      await page.waitForSelector(
+        'button[data-url="/settings/gravatar_status"]'
+      );
+      await page.click('button[data-url="/settings/gravatar_status"]');
+      const handle = await page.$('input[type="file"]');
+      await handle?.uploadFile("./images/image.jpg");
+    } catch (error) {
+      console.log(
+        "you havent added an avatar before, using the alternative method."
+      );
+      await handle?.uploadFile("./images/image.jpg");
+      await page.click(
+        ".Button--primary.Button--medium.Button.Button--fullWidth"
+      );
+    } finally {
+      console.log("uploading avatar...");
+    }
+    await page.waitForSelector(".logged-in");
+    const handle2 = await page.$('input[type="file"]');
+
+    await handle2?.uploadFile("./images/image.jpg");
+    console.log("avatar has been set.");
     await browser.close();
   }
 }
