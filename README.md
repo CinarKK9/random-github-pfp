@@ -18,7 +18,7 @@ Make sure you have [Node.js](https://nodejs.org/) installed.
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/CinarKK9/random-github-pfp
    cd random-github-pfp
    ```
 
