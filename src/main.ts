@@ -1,5 +1,5 @@
-import * as cfg from "./config.json";
-import * as cookies from "./cookies.json";
+import * as cfg from "../config.json";
+import * as cookies from "../cookies.json";
 import GitPfp from "./gitpfp";
 import puppeteer from "puppeteer";
 
