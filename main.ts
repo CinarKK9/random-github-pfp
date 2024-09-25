@@ -12,7 +12,12 @@ const main = async () => {
     headless: true,
   });
 
-  await gitPfp.getRandomPicture();
+  try {
+    await gitPfp.getRandomPicture();
+  } catch (error) {
+    console.log("Error getting random picture, trying again: ", error);
+    await gitPfp.getRandomPicture();
+  }
 
   if (cookies.user_session == "" || cookies.user_session_same_site == "") {
     await gitPfp.loginToGitHub(browser, {
