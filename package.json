@@ -2,7 +2,7 @@
   "name": "random-github-pfp",
   "version": "1.0.0",
   "description": "This will update your github pfp everyday with a random astronomy image of the day using the nasa api",
-  "main": "./build/main.js",
+  "main": "./build/src/main.js",
   "scripts": {
     "build": "tsc -b",
     "start": "node ."

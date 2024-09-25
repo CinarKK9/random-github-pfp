@@ -27,14 +27,15 @@ export default class GitPfp {
       return;
     }
 
-    const writer = createWriteStream(resolve(__dirname, `../images/image.jpg`));
+    const writer = createWriteStream(
+      resolve(__dirname, `../../images/image.jpg`)
+    );
     const imageResponse: AxiosResponse<Stream> = await axios({
       url: imageUrl,
       method: "GET",
       responseType: "stream",
     });
 
-    //if the image is bigger than 1mb, try again
     if (parseInt(imageResponse.headers["content-length"]) > 1000000) {
       console.log("image is too big, trying again...");
       this.getRandomPicture();
@@ -69,21 +70,27 @@ export default class GitPfp {
     });
     if (loginCookies) {
       console.log("logging in with cookie...");
-      await page.setCookie({
-        name: "user_session",
-        secure: true,
-        value: loginCookies[0],
-        domain: ".github.com",
-      });
-      await page.setCookie({
-        name: "__Host-user_session_same_site",
-        secure: true,
-        sameSite: "Strict",
-        domain: "github.com",
-        httpOnly: true,
-        value: loginCookies[1],
-        path: "/",
-      });
+      try {
+        await page.setCookie({
+          name: "user_session",
+          secure: true,
+          value: loginCookies[0],
+          domain: ".github.com",
+        });
+        await page.setCookie({
+          name: "__Host-user_session_same_site",
+          secure: true,
+          sameSite: "Strict",
+          domain: "github.com",
+          httpOnly: true,
+          value: loginCookies[1],
+          path: "/",
+        });
+      } catch (error) {
+        console.log("error setting cookies: ", error);
+      } finally {
+        console.log("logged in with cookies.");
+      }
       await page.goto("https://github.com");
     }
     if (githubUsername && githubPassword) {
@@ -117,7 +124,7 @@ export default class GitPfp {
         await page
           .waitForSelector(".logged-in")
           .then(async () => {
-            console.log("successfully logged in to github.");
+            console.log("logged in to github.");
             const cookies = await page.cookies();
             const sessionCookie = cookies.find(
               (cookie) => cookie.name == "user_session"
@@ -156,18 +163,12 @@ export default class GitPfp {
       height: 1080,
       deviceScaleFactor: 1,
     });
-    
+
     page.on("dialog", async (dialog) => {
       await dialog.accept();
     });
 
     await page.goto("https://github.com/settings/profile");
-    await page.waitForSelector(".logged-in");
-    await page.click(
-      ".position-absolute.color-bg-default.rounded-2.color-fg-default.px-2.py-1.left-0.bottom-0.ml-2.mb-2.border"
-    );
-    const handle = await page.$('input[type="file"]');
-    await handle?.uploadFile("./images/image.jpg");
     try {
       await page.waitForSelector(
         'button[data-url="/settings/gravatar_status"]'
@@ -177,19 +178,19 @@ export default class GitPfp {
       await handle?.uploadFile("./images/image.jpg");
     } catch (error) {
       console.log(
-        "you havent added an avatar before, using the alternative method."
+        "could not find reset avatar button, trying to upload avatar..."
       );
+      const handle = await page.$('input[type="file"]');
       await handle?.uploadFile("./images/image.jpg");
+      await page.waitForSelector(
+        ".Button--primary.Button--medium.Button.Button--fullWidth"
+      );
       await page.click(
         ".Button--primary.Button--medium.Button.Button--fullWidth"
       );
     } finally {
       console.log("uploading avatar...");
     }
-    await page.waitForSelector(".logged-in");
-    const handle2 = await page.$('input[type="file"]');
-
-    await handle2?.uploadFile("./images/image.jpg");
     console.log("avatar has been set.");
     await browser.close();
   }
