@@ -27,9 +27,7 @@ export default class GitPfp {
       return;
     }
 
-    const writer = createWriteStream(
-      resolve(__dirname, `../../images/image.jpg`)
-    );
+    const writer = createWriteStream(resolve(__dirname, `../images/image.jpg`));
     const imageResponse: AxiosResponse<Stream> = await axios({
       url: imageUrl,
       method: "GET",
@@ -175,13 +173,13 @@ export default class GitPfp {
       );
       await page.click('button[data-url="/settings/gravatar_status"]');
       const handle = await page.$('input[type="file"]');
-      await handle?.uploadFile("./images/image.jpg");
+      await handle?.uploadFile("../images/image.jpg");
     } catch (error) {
       console.log(
         "could not find reset avatar button, trying to upload avatar..."
       );
       const handle = await page.$('input[type="file"]');
-      await handle?.uploadFile("./images/image.jpg");
+      await handle?.uploadFile("../images/image.jpg");
       await page.waitForSelector(
         ".Button--primary.Button--medium.Button.Button--fullWidth"
       );
@@ -191,7 +189,21 @@ export default class GitPfp {
     } finally {
       console.log("uploading avatar...");
     }
-    console.log("avatar has been set.");
+    try {
+      const elem = await page.$("js-flash-alert");
+      await page
+        .evaluate((el) => el?.textContent, elem)
+        .then((val) => {
+          if (val?.includes("Your profile picture has been updated.")) {
+            console.log("avatar has been set.");
+          }
+        })
+        .catch(() => {
+          console.log("error setting avatar");
+        });
+    } catch (error) {
+      console.log("error setting avatar: ", error);
+    }
     await browser.close();
   }
 }

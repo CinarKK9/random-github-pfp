@@ -2,10 +2,9 @@
   "name": "random-github-pfp",
   "version": "1.0.0",
   "description": "This will update your github pfp everyday with a random astronomy image of the day using the nasa api",
-  "main": "./build/src/main.js",
+  "main": "./src/main.ts",
   "scripts": {
-    "build": "tsc -b",
-    "start": "node ."
+    "start": "ts-node ."
   },
   "keywords": [],
   "author": "",
@@ -13,5 +12,8 @@
   "dependencies": {
     "axios": "^1.7.7",
     "puppeteer": "^23.4.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2"
   }
 }

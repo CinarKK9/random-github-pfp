@@ -45,25 +45,37 @@ Make sure you have [Node.js](https://nodejs.org/) installed.
 
 ### Usage
 
-1. **Build the TypeScript files:**
-   ```bash
-   npm run build
-   ```
-
-2. **Start the project:**
+1. **Start the project:**
    ```bash
    npm start
    ```
 
-### Important Note
+### Automation
 
-After logging in for the first time, remember to rebuild the project so that the `config.json` and `cookies.json` changes are reflected in the build. 
+For Windows:
 
-3. If the application crashes on startup, simply run `npm start` again.
+1. Create a bat file:
+   ```bat
+   @echo off
+   cd path\to\this-repo
+   npm start
+   ```
 
-4. Sometimes, the browser may become unresponsive. A quick restart should resolve the issue.
+2. Startup the bat file on Windows startup:
+   - Press `Win + R`.
+   - Type `shell:startup`.
+   - Move the bat file to the folder that opens.
 
-5. Future updates will include automation scripts for improved stability, including crash handling.
+For Linux:
+
+1. Create a new cron job:
+   ```bash
+   crontab -e
+   ```
+   Add the following line to the file:
+   ```bash
+   @reboot sleep 60 && cd path/to/this-repo && npm start
+   ```
 
 ## Contributing
 

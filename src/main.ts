@@ -5,11 +5,26 @@ import puppeteer from "puppeteer";
 
 const gitPfp = new GitPfp(cfg.nasa_api_key);
 
-gitPfp.getRandomPicture();
+const startTime = new Date();
+
+setInterval(async () => {
+  const currentTime = new Date();
+
+  if (
+    currentTime.getHours() === startTime.getHours() &&
+    currentTime.getMinutes() === startTime.getMinutes()
+  ) {
+    try {
+      await main();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+}, 60000 * 10);
 
 const main = async () => {
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
   });
 
   try {
@@ -33,7 +48,3 @@ const main = async () => {
 
   await gitPfp.setGitHubPfp(browser);
 };
-
-main().catch((err) => {
-  console.log(err);
-});
