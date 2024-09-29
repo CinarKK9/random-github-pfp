@@ -7,21 +7,6 @@ const gitPfp = new GitPfp(cfg.nasa_api_key);
 
 const startTime = new Date();
 
-setInterval(async () => {
-  const currentTime = new Date();
-
-  if (
-    currentTime.getHours() === startTime.getHours() &&
-    currentTime.getMinutes() === startTime.getMinutes()
-  ) {
-    try {
-      await main();
-    } catch (error) {
-      console.log(error);
-    }
-  }
-}, 60000 * 10);
-
 const main = async () => {
   const browser = await puppeteer.launch({
     headless: true,
@@ -48,3 +33,20 @@ const main = async () => {
 
   await gitPfp.setGitHubPfp(browser);
 };
+
+main().catch((error) => {
+  console.log(error);
+});
+
+setInterval(async () => {
+  const currentTime = new Date();
+
+  if (
+    currentTime.getHours() === startTime.getHours() &&
+    currentTime.getMinutes() === startTime.getMinutes()
+  ) {
+    main().catch((error) => {
+      console.log(error);
+    });
+  }
+}, 60000 * 10);

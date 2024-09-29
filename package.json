@@ -4,7 +4,7 @@
   "description": "This will update your github pfp everyday with a random astronomy image of the day using the nasa api",
   "main": "./src/main.ts",
   "scripts": {
-    "start": "npm install && ts-node ."
+    "start": "ts-node ."
   },
   "keywords": [],
   "author": "",

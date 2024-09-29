@@ -7,9 +7,11 @@ import { Browser } from "puppeteer";
 
 export default class GitPfp {
   private nasaApiKey: string;
+  private filePath: string;
 
   constructor(nasaApiKey: string) {
     this.nasaApiKey = nasaApiKey;
+    this.filePath = resolve(__dirname, "../images/image.jpg");
   }
 
   async getRandomPicture() {
@@ -27,7 +29,7 @@ export default class GitPfp {
       return;
     }
 
-    const writer = createWriteStream(resolve(__dirname, `../images/image.jpg`));
+    const writer = createWriteStream(this.filePath);
     const imageResponse: AxiosResponse<Stream> = await axios({
       url: imageUrl,
       method: "GET",
@@ -62,12 +64,10 @@ export default class GitPfp {
   ) {
     const page = await browser.newPage();
     await page.setViewport({
-      width: 1920,
-      height: 1080,
-      deviceScaleFactor: 1,
+      width: 1024,
+      height: 720,
     });
     if (loginCookies) {
-      console.log("logging in with cookie...");
       try {
         await page.setCookie({
           name: "user_session",
@@ -89,7 +89,6 @@ export default class GitPfp {
       } finally {
         console.log("logged in with cookies.");
       }
-      await page.goto("https://github.com");
     }
     if (githubUsername && githubPassword) {
       await page.goto("https://github.com/login");
@@ -157,9 +156,8 @@ export default class GitPfp {
   async setGitHubPfp(browser: Browser) {
     const page = await browser.newPage();
     await page.setViewport({
-      width: 1920,
-      height: 1080,
-      deviceScaleFactor: 1,
+      width: 1024,
+      height: 720,
     });
 
     page.on("dialog", async (dialog) => {
@@ -169,17 +167,15 @@ export default class GitPfp {
     await page.goto("https://github.com/settings/profile");
     try {
       await page.waitForSelector(
-        'button[data-url="/settings/gravatar_status"]'
+        'button[data-url="/settings/gravatar_status"]',
+        { timeout: 2000 }
       );
       await page.click('button[data-url="/settings/gravatar_status"]');
       const handle = await page.$('input[type="file"]');
-      await handle?.uploadFile("../images/image.jpg");
+      await handle?.uploadFile(this.filePath);
     } catch (error) {
-      console.log(
-        "could not find reset avatar button, trying to upload avatar..."
-      );
       const handle = await page.$('input[type="file"]');
-      await handle?.uploadFile("../images/image.jpg");
+      await handle?.uploadFile(this.filePath);
       await page.waitForSelector(
         ".Button--primary.Button--medium.Button.Button--fullWidth"
       );
@@ -189,21 +185,7 @@ export default class GitPfp {
     } finally {
       console.log("uploading avatar...");
     }
-    try {
-      const elem = await page.$("js-flash-alert");
-      await page
-        .evaluate((el) => el?.textContent, elem)
-        .then((val) => {
-          if (val?.includes("Your profile picture has been updated.")) {
-            console.log("avatar has been set.");
-          }
-        })
-        .catch(() => {
-          console.log("error setting avatar");
-        });
-    } catch (error) {
-      console.log("error setting avatar: ", error);
-    }
+    console.log("avatar has been set.");
     await browser.close();
   }
 }

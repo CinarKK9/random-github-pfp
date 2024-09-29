@@ -26,22 +26,9 @@ Make sure you have [Node.js](https://nodejs.org/) installed.
    npm install
    ```
 
-3. Create `cookies.json` with the following structure:
-   ```json
-   {
-     "user_session": "",
-     "user_session_same_site": ""
-   }
-   ```
+3. Rename `cookies.example.json` to `cookies.json`.
 
-4. Create `config.json` with the following structure:
-   ```json
-   {
-     "nasa_api_key": "",
-     "github_username": "",
-     "github_password": ""
-   }
-   ```
+4. Rename `config.example.json` to `config.json`.
 
 ### Usage
 
@@ -84,7 +71,3 @@ Feel free to open issues or submit pull requests for enhancements and bug fixes!
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
-With this tool, your GitHub profile will always feature stunning astronomy images! Enjoy!
