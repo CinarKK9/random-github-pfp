@@ -10,12 +10,13 @@ const startTime = new Date();
 const main = async () => {
   const browser = await puppeteer.launch({
     headless: true,
+    executablePath: "/usr/bin/chromium-browser",
   });
 
   try {
     await gitPfp.getRandomPicture();
   } catch (error) {
-    console.log("Error getting random picture, trying again: ", error);
+    console.log("Error getting random picture, trying again: ");
     await gitPfp.getRandomPicture();
   }
 
